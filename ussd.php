@@ -20,24 +20,31 @@ $txn->msisdn = $ussd->inboundUSSDMessageRequest->address;
 $txn->shortCode = $ussd->inboundUSSDMessageRequest->shortCode;
 $txn->keyword = $ussd->inboundUSSDMessageRequest->keyword;
 $txn->inboundUSSDMessage = $ussd->inboundUSSDMessageRequest->inboundUSSDMessage;
+$txn->ussdAction = $ussd->inboundUSSDMessageRequest->ussdAction;
+$txn->clientCorrelator = $ussd->inboundUSSDMessageRequest->clientCorrelator;
 
 
 $txn_history = loadHistory($txn->session);
 
-makeLog("IN : SESSION : " . $txn->session . " | MSISDN : " . $txn->msisdn . " | SC : " . $txn->shortCode . " | KW :" . $txn->keyword . " | MSG : " . $txn->inboundUSSDMessage);
+makeLog("IN : SESSION : " . $txn->session . " | MSISDN : " . $txn->msisdn . " | SC : " . $txn->shortCode . " | KW :" . $txn->keyword . " | MSG : " . $txn->inboundUSSDMessage. " | Action : " . $txn->ussdAction. " | CC : " . $txn->clientCorrelator);
 
-$txn->res_message = "My Msg";
+$txn->res_message = "Result";
 $txn->res_Action = "mtcont";
+$txn->res_clientCorrelator = round(microtime(true) * 1000);
+$txn->res_callbackData = round(microtime(true) * 1000);
 
 /**
  * Do your logic using session variables here and set bellow variables
  * $txn->res_message = "My Msg";
  * $txn->res_Action = "mtcont";
+ * $txn->res_clientCorrelator if required
+ * $txn->res_callbackData if required
  */
+$txn->res_message.="\r\nCount : ".count($_SESSION['txns'])."\r\nMsg : ".$txn->inboundUSSDMessage."\r\nCC : ".substr($txn->clientCorrelator,-5)."\r\nSession : ".substr($txn->session,-5)."\r\nR_CC : ".substr($txn->res_clientCorrelator,-5)."\r\n".
 
 
 
-makeLog("OUT : SESSION : " . $txn->session . " | MSISDN : " . $txn->msisdn . " | SC : " . $txn->shortCode . " | KW :" . $txn->keyword . " | MSG : " . $txn->res_message . " | ACTION : " . $txn->res_Action);
+makeLog("OUT : SESSION : " . $txn->session . " | MSISDN : " . $txn->msisdn . " | SC : " . $txn->shortCode . " | KW :" . $txn->keyword . " | MSG : " . $txn->res_message . " | ACTION : " . $txn->res_Action. " | CC : " . $txn->res_clientCorrelator);
 saveSession($txn);
 
 $out = array(
@@ -46,9 +53,9 @@ $out = array(
         "keyword" => $txn->keyword,
         "shortCode" => $txn->shortCode,
         "outboundUSSDMessage" => $txn->res_message,
-        "clientCorrelator" => round(microtime(true) * 1000),
+        "clientCorrelator" => $txn->res_clientCorrelator,
         "ussdAction" => $txn->res_Action,
-        "responseRequest" => array("notifyURL" => $notifyURL, "callbackData" => round(microtime(true) * 1000))
+        "responseRequest" => array("notifyURL" => $notifyURL, "callbackData" => $txn->res_callbackData)
     )
 
 );
